@@ -18,4 +18,3 @@ Module Odoo quản lý quy trình sản xuất may mặc, được phát triển
 * **Tools:** VS Code, Git/GitHub.
 
 ## 📸 Demo
-(Bạn có thể chèn ảnh chụp màn hình các chức năng vào đây sau này)
