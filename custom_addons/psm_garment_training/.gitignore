@@ -1,0 +1,21 @@
+# 1. Bỏ qua các file môi trường/mật khẩu
+.env
+*.env
+.odoorc
+
+# 2. Bỏ qua mã nguồn gốc của Odoo (Chỉ giữ lại custom_addons của bạn)
+odoo/
+!odoo/odoo-bin
+# Nếu bạn muốn giữ lại odoo thì xóa dòng "odoo/" ở trên đi nhé, 
+# nhưng thường ta chỉ up module tự viết (psm_garment_training) lên thôi.
+
+# 3. Bỏ qua các file rác của Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# 4. Bỏ qua dữ liệu hệ điều hành
+.DS_Store
+Thumbs.db

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_psm_production_tree" model="ir.ui.view">
+        <field name="name">psm.production.tree</field>
+        <field name="model">psm.production.order</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="fabric_thickness"/> 
+                <field name="quantity"/>
+                
+                <field name="material_id"/>
+                <field name="bom_norm"/>
+                <field name="total_material_needed"/> 
+                
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_psm_production_form" model="ir.ui.view">
+        <field name="name">psm.production.form</field>
+        <field name="model">psm.production.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_preview_report" string="Xem trước bản in" type="object" icon="fa-print"/>
+                    <button name="action_confirm" string="Bắt đầu may" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_done" string="Hoàn thành" type="object" class="oe_highlight" invisible="state != 'confirm'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done"/>
+                </header>
+                    <group>
+                        <field name="name"/>
+                        <field name="product_id"/>
+                        <field name="fabric_thickness"/> 
+                        <field name="quantity"/>
+                        
+                        <field name="material_id"/>
+                        <field name="bom_norm"/>
+                        <field name="total_material_needed"/> 
+                        
+                        <field name="start_date"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Nhật ký MES &amp; Tính lương" name="production_logs">
+                            <field name="log_ids">
+                                <tree editable="bottom" decoration-danger="defect_qty &gt; 0">
+                                    <field name="date"/>
+                                    <field name="worker_name"/>
+                                    <field name="operation"/>
+                                    <field name="good_qty" sum="Tổng ĐẠT"/>
+                                    <field name="defect_qty" sum="Tổng LỖI"/>
+                                    <field name="defect_type"/>
+                                    <field name="unit_price"/>
+                                    <field name="total_wage" sum="Tổng tiền lương"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="action_psm_production" model="ir.actions.act_window">
+        <field name="name">Lệnh Sản Xuất</field>
+        <field name="res_model">psm.production.order</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_psm_production_log_graph" model="ir.ui.view">
+        <field name="name">psm.production.log.graph</field>
+        <field name="model">psm.production.log</field>
+        <field name="arch" type="xml">
+            <graph string="Thống kê năng suất công nhân" type="bar">
+                <field name="worker_name" type="row"/>
+                <field name="good_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_psm_production_log_pivot" model="ir.ui.view">
+        <field name="name">psm.production.log.pivot</field>
+        <field name="model">psm.production.log</field>
+        <field name="arch" type="xml">
+            <pivot string="Phân tích dữ liệu MES">
+                <field name="worker_name" type="row"/>
+                <field name="operation" type="col"/>
+                <field name="good_qty" type="measure"/>
+                <field name="defect_qty" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_psm_production_log_report" model="ir.actions.act_window">
+        <field name="name">Báo cáo Năng suất</field>
+        <field name="res_model">psm.production.log</field>
+        <field name="view_mode">graph,pivot,tree</field> </record>
+
+    <menuitem id="menu_psm_root" name="PSM App" sequence="1"/>
+    
+    <menuitem id="menu_psm_production" 
+              parent="menu_psm_root" 
+              action="action_psm_production" 
+              name="Quản lý may mặc" 
+              sequence="10"/>
+
+    <menuitem id="menu_psm_production_report" 
+              parent="menu_psm_root" 
+              action="action_psm_production_log_report" 
+              name="Báo cáo Năng suất" 
+              sequence="20"/>
+</odoo>

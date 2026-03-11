@@ -1,0 +1,204 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7c847cb6-8b00-44eb-bac3-f28ffa3300b0",
+      "name": "Telegram Trigger",
+      "webhookId": "096438cd-607f-4737-84c5-ccae9928c606",
+      "credentials": {
+        "telegramApi": {
+          "id": "IyFkmczEXMQThKYU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "Bạn là một trợ lý AI phân tích dữ liệu cho hệ thống MES của xưởng may. Hãy đọc bảng chấm công viết tay trong bức ảnh đính kèm.\nNhiệm vụ của bạn là tìm kiếm mã đơn hàng ghi trên giấy và trích xuất thông tin chấm công, sau đó trả về ĐÚNG một mảng JSON (không kèm markdown ```json, không kèm lời chào, chỉ có dữ liệu JSON).\n\nCấu trúc JSON bắt buộc:\n[\n{\n\"order_code\": \"Mã đơn hàng viết trên giấy (ví dụ: PSM-2026-0005). Nếu trong ảnh không ghi mã nào thì để chữ 'none'\",\n\"worker_name\": \"Tên công nhân\",\n\"operation\": \"Mã công đoạn (chỉ chọn 1 trong các giá trị: cut, collar, sleeve, body, assemble, qc, pack)\",\n\"good_qty\": Số lượng hàng đạt (kiểu số nguyên),\n\"defect_qty\": Số lượng hàng lỗi (kiểu số nguyên, nếu không có thì để 0),\n\"defect_type\": \"Mã loại lỗi (chỉ chọn 1 trong các giá trị: none, broken_stitch, fabric, size, dirt. Nếu không có lỗi thì bắt buộc để 'none')\"\n}\n]\n\nDựa vào chữ viết tay trong ảnh, hãy map (khớp) thông tin sao cho đúng với các mã tiếng Anh bắt buộc ở trên.\nVí dụ:\n\nMay cổ -> collar\n\nMay tay -> sleeve\n\nĐứt chỉ -> broken_stitch",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "24847aaf-f961-4667-8cb6-e352c0e065b7",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HoGGbmdDOeqoIR3m",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Lấy đoạn text chứa JSON từ kết quả của Gemini\nlet rawText = $input.first().json.content.parts[0].text;\n\n// 2. Dọn dẹp phòng trường hợp AI \"vui tính\" chèn thêm markdown (```json ... ```)\nlet cleanText = rawText.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\n// 3. Chuyển chữ thành mảng dữ liệu (Array of Objects)\nlet records = JSON.parse(cleanText);\n\n// 4. Trả về định dạng n8n yêu cầu (Mỗi công nhân là 1 item riêng biệt)\nreturn records.map(item => ({ json: item }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b99a2eb9-7c31-4bc8-b31d-1d81df4184ab",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "custom",
+        "customResource": "psm.production.log",
+        "fieldsToCreateOrUpdate": {
+          "fields": [
+            {
+              "fieldName": "worker_name",
+              "fieldValue": "={{ $json.worker_name }}"
+            },
+            {
+              "fieldName": "operation",
+              "fieldValue": "={{ $json.operation }}"
+            },
+            {
+              "fieldName": "defect_qty",
+              "fieldValue": "={{ $json.defect_qty }}"
+            },
+            {
+              "fieldName": "good_qty",
+              "fieldValue": "={{ $json.good_qty }}"
+            },
+            {
+              "fieldName": "defect_type",
+              "fieldValue": "={{ $json.defect_type }}"
+            },
+            {
+              "fieldName": "production_id",
+              "fieldValue": "12"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "a9a13f98-2f52-44e3-9043-981b7b958659",
+      "name": "Create an item",
+      "credentials": {
+        "odooApi": {
+          "id": "ryQdipkBL79qyVoC",
+          "name": "Odoo account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ Sếp ơi, đã lưu thành công dữ liệu vào hệ thống Odoo MES!\nMã hệ thống (ID): {{ $json.id }}\n\n👷 Công nhân: {{ $('Code in JavaScript').item.json.worker_name }}\n✂️ Công đoạn: {{ $('Code in JavaScript').item.json.operation }}\n🟢 Hàng ĐẠT: {{ $('Code in JavaScript').item.json.good_qty }} cái\n🔴 Hàng LỖI: {{ $('Code in JavaScript').item.json.defect_qty }} cái ({{ $('Code in JavaScript').item.json.defect_type }})\n\nHệ thống đã ghi nhận đầy đủ, sếp yên tâm nhé! 🚀",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "d6db84f4-2285-4dc5-b1c2-788d298cca1d",
+      "name": "Send a text message",
+      "webhookId": "7769a604-387f-4411-99e8-4130800c15b8",
+      "credentials": {
+        "telegramApi": {
+          "id": "IyFkmczEXMQThKYU",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create an item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an item": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ba52ed0b-b3ef-47d8-9585-51c4b867d819",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e63440fafe1635d84031a254d7b622cecbcb72715e07aa9a33d9ac40e21b5d2"
+  },
+  "id": "JkhAG51Oos4cS7RE",
+  "tags": []
+}

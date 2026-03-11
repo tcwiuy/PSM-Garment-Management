@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_production_order" model="ir.actions.report">
+        <field name="name">In Lệnh Sản Xuất</field>
+        <field name="model">psm.production.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">psm_garment_training.report_production_order_template</field>
+        <field name="report_file">psm_garment_training.report_production_order_template</field>
+        <field name="print_report_name">'Lệnh Sản Xuất - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_psm_production_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_production_order_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center mt-4">LỆNH SẢN XUẤT MAY MẶC</h2>
+                        <h4 class="text-center mb-4" t-field="o.name"/>
+                        
+                        <table class="table table-sm table-bordered mt-4">
+                            <tr>
+                                <td style="width: 25%;"><strong>Sản phẩm may:</strong></td>
+                                <td style="width: 25%;"><span t-field="o.product_id"/></td>
+                                <td style="width: 25%;"><strong>Ngày bắt đầu:</strong></td>
+                                <td style="width: 25%;"><span t-field="o.start_date"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Độ dày vải (mm):</strong></td>
+                                <td><span t-field="o.fabric_thickness"/></td>
+                                <td><strong>Số lượng (cái):</strong></td>
+                                <td><span t-field="o.quantity"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tổng vải cần (mét):</strong></td>
+                                <td colspan="3"><span t-field="o.fabric_needed"/></td>
+                            </tr>
+                        </table>
+                        
+                        <div class="row mt-5">
+                            <div class="col-6 text-center">
+                                <strong>Người lập phiếu</strong>
+                                <br/><br/><br/>
+                                <p>(Ký và ghi rõ họ tên)</p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <strong>Quản đốc xưởng</strong>
+                                <br/><br/><br/>
+                                <p>(Ký và ghi rõ họ tên)</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
