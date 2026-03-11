@@ -5,7 +5,6 @@
 
 # 2. Bỏ qua mã nguồn gốc của Odoo (Chỉ giữ lại custom_addons của bạn)
 odoo/
-!odoo/odoo-bin
 # Nếu bạn muốn giữ lại odoo thì xóa dòng "odoo/" ở trên đi nhé, 
 # nhưng thường ta chỉ up module tự viết (psm_garment_training) lên thôi.
 
