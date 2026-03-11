@@ -33,7 +33,4 @@ Module `psm_garment_training` được thiết kế theo hướng module hóa (M
 * Báo cáo thống kê năng suất tự động cập nhật theo thời gian thực (Real-time Dashboard).
 
 ## 📸 Hình ảnh minh họa (Screenshots)
-*(Ghi chú: Thêm hình ảnh Telegram Bot đang chat, hình ảnh n8n workflow và hình ảnh biểu đồ trong Odoo vào đây)*
 
----
-*Dự án được phát triển nhằm mục đích tối ưu hóa quy trình quản lý xưởng may và ứng dụng công nghệ AI vào môi trường sản xuất thực tế.*
